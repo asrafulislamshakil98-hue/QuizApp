@@ -8,6 +8,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (req, res) => {
+    res.send("<h1>কুইজ অ্যাপের ব্যাকএন্ড সার্ভার সফলভাবে চলছে!</h1>");
+});
+
 // MongoDB কানেকশন
 mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/quiz_db")
     .then(() => console.log("✅ MongoDB Connected"))
