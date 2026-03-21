@@ -1,0 +1,53 @@
+body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; text-align: center; }
+.header { background: #2c3e50; color: white; padding: 15px; display: flex; justify-content: space-around; align-items: center; position: sticky; top: 0; }
+#coin-box { background: #f1c40f; color: black; padding: 10px 20px; border-radius: 20px; font-weight: bold; }
+.container { padding: 20px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+
+/* বাটন স্টাইল */
+.cat-btn { padding: 25px 10px; background: #3498db; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; }
+.q-link { background: white; margin: 5px 0; padding: 15px; border-radius: 5px; cursor: pointer; text-align: left; border-left: 5px solid #3498db; }
+
+/* মোডাল স্টাইল */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; }
+.modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; }
+.options-grid { display: grid; gap: 10px; margin-top: 20px; }
+.opt-btn { padding: 15px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 16px; }
+.correct { background: #2ecc71 !important; color: white; }
+.wrong { background: #e74c3c !important; color: white; }
+.back-btn, .close-btn { background: #e74c3c; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; margin-bottom: 10px; }
+.header {
+    background: #2c3e50;
+    color: white;
+    padding: 10px 20px;
+    display: flex; /* এটি লোগো, টাইটেল ও কয়েনকে এক লাইনে আনবে */
+    justify-content: space-between; /* লোগো বামে, টাইটেল মাঝখানে, কয়েন ডানে */
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* লোগোর সাইজ ঠিক করার জন্য */
+#app-logo {
+    height: 50px; /* লোগো কত বড় হবে তা এখান থেকে ঠিক করুন */
+    width: auto;
+    display: block;
+}
+
+/* টাইটেল যাতে সব সময় মাঝখানে থাকে */
+.header h1 {
+    flex-grow: 1;
+    text-align: center;
+    margin: 0;
+}
+
+/* কয়েন বক্সের ডিজাইন ঠিক রাখা */
+#coin-box {
+    background: #f1c40f;
+    color: black;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    white-space: nowrap; /* যাতে এক লাইনে থাকে */
+}

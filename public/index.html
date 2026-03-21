@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>বাংলা কুইজ অ্যাপ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="header">
+        <div class="logo-container">
+            <img src="image/logo.png.png" alt="Logo" id="app-logo">
+        </div>
+        <h1>কুইজ মাস্টার</h1>
+        <div id="coin-box">💰 কয়েন: <span id="coins">0</span></div>
+    </div>
+
+    <!-- স্ক্রিন ১: ক্যাটাগরি লিস্ট -->
+    <div id="category-screen" class="container">
+        <h2>একটি ক্যাটাগরি সিলেক্ট করুন</h2>
+        <div id="category-list" class="grid"></div>
+    </div>
+
+    <!-- স্ক্রিন ২: প্রশ্নের লিস্ট -->
+    <div id="question-list-screen" class="container" style="display:none;">
+        <button class="back-btn" onclick="showCategories()">← পিছনে যান</button>
+        <h2 id="cat-title">ক্যাটাগরি</h2>
+        <div id="question-links" class="list"></div>
+    </div>
+
+    <!-- স্ক্রিন ৩: কুইজ পপআপ (মোডাল) -->
+    <div id="quiz-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3 id="modal-q-text">প্রশ্ন?</h3>
+            <div id="options-box" class="options-grid"></div>
+            <p id="feedback"></p>
+            <button onclick="closeQuiz()" class="close-btn">বন্ধ করুন</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

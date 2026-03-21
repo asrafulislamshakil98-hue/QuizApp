@@ -2,26 +2,24 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 
 dotenv.config();
 const app = express();
 
-// ১. মিডলওয়্যার
 app.use(cors());
 app.use(express.json());
 
-// ২. হোম রুট (সার্ভার চেক করার জন্য)
-app.get('/', (req, res) => {
-    res.send("<h1>কুইজ অ্যাপের ব্যাকএন্ড সার্ভার সফলভাবে চলছে!</h1>");
-});
+// ১. Static folder (public) কানেক্ট করা
+app.use(express.static(path.join(__dirname, 'public')));
 
-// ৩. MongoDB কানেকশন
+// ২. MongoDB কানেকশন
 const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/quiz_db";
 mongoose.connect(mongoURI)
     .then(() => console.log("✅ MongoDB Connected"))
     .catch(err => console.error("❌ MongoDB Error:", err));
 
-// ৪. প্রশ্ন মডেল (Schema)
+// ৩. প্রশ্ন মডেল
 const Question = mongoose.model('Question', new mongoose.Schema({
     category: String,
     question: String,
@@ -29,27 +27,24 @@ const Question = mongoose.model('Question', new mongoose.Schema({
     correctAnswer: Number
 }));
 
-// ৫. ক্যাটাগরি অনুযায়ী প্রশ্ন পাওয়ার আসল রুট
+// ৪. এপিআই রুট (এটি ঠিক আছে)
 app.get('/api/questions/:category', async (req, res) => {
     try {
-        const categoryName = req.params.category;
-        console.log("Searching for category:", categoryName);
-
-        // ডাটাবেস থেকে প্রশ্ন খোঁজা
-        const questions = await Question.find({ category: categoryName });
-
-        if (questions.length === 0) {
-            return res.status(404).json({ message: "এই ক্যাটাগরিতে কোনো প্রশ্ন পাওয়া যায়নি।" });
-        }
-
+        const questions = await Question.find({ category: req.params.category });
         res.json(questions);
     } catch (err) {
-        res.status(500).json({ error: "সার্ভারে সমস্যা হয়েছে।" });
+        res.status(500).json({ error: "সার্ভার এরর" });
     }
 });
 
-// ৬. পোর্ট সেটিংস
+// ৫. এরর ফিক্স: Express 5 এর জন্য নতুন নিয়ম (৪২ নম্বর লাইন)
+// এখানে শুধু '*' এর বদলে '/:path*' ব্যবহার করা হয়েছে
+app.get('/:path*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ৬. সার্ভার পোর্ট
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🚀 Server is running on port ${PORT}`);
 });
