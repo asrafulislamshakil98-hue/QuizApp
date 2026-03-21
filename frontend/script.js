@@ -3,7 +3,7 @@ document.getElementById('coins').innerText = coins;
 
 const categories = ["সাধারণ জ্ঞান", "বিজ্ঞান", "ইতিহাস", "ভূগোল", "খেলাধুলা", "গণিত", "ধর্ম", "সাহিত্য", "চলচ্চিত্র", "কম্পিউটার", "রাজনীতি", "দেশ-বিদেশ", "আবিষ্কার", "মহাকাশ", "প্রাণীজগৎ", "উদ্ভিদ", "স্বাস্থ্য", "সংস্কৃতি", "অর্থনীতি", "পরিবেশ"];
 
-// ২০টি ক্যাটাগরি তৈরি
+// ১. ২০টি ক্যাটাগরি বাটন তৈরি
 const catList = document.getElementById('category-list');
 categories.forEach(cat => {
     let btn = document.createElement('button');
@@ -13,36 +13,38 @@ categories.forEach(cat => {
     catList.appendChild(btn);
 });
 
-// ২০০টি প্রশ্নের লিস্ট লোড করা
+// ২. ডাটাবেস থেকে প্রশ্ন লোড করা
 async function loadQuestions(catName) {
     try {
-        const response = await fetch(`https://quizapp-k8gb.onrender.com/api/questions/${category}`);
+        // এখানে আগে ${category} ছিল, আমি তা ঠিক করে ${catName} করে দিয়েছি
+        const response = await fetch(`https://quizapp-k8gb.onrender.com/api/questions/${catName}`);
         const questions = await response.json();
 
         document.getElementById('cat-title').innerText = catName;
         const qContainer = document.getElementById('question-links');
         qContainer.innerHTML = '';
 
-        if(questions.length === 0) {
-            qContainer.innerHTML = "<p>কোনো প্রশ্ন পাওয়া যায়নি। আগে ডাটাবেসে প্রশ্ন যোগ করুন।</p>";
+        if (!questions || questions.length === 0) {
+            qContainer.innerHTML = "<p style='color:red;'>কোনো প্রশ্ন পাওয়া যায়নি। ডাটাবেসে প্রশ্ন চেক করুন।</p>";
+        } else {
+            questions.forEach((q, index) => {
+                let div = document.createElement('div');
+                div.className = 'q-link';
+                div.innerText = `${index + 1}. ${q.question}`;
+                div.onclick = () => openQuiz(q);
+                qContainer.appendChild(div);
+            });
         }
-
-        questions.forEach((q, index) => {
-            let div = document.createElement('div');
-            div.className = 'q-link';
-            div.innerText = `${index + 1}. ${q.question}`;
-            div.onclick = () => openQuiz(q);
-            qContainer.appendChild(div);
-        });
 
         document.getElementById('category-screen').style.display = 'none';
         document.getElementById('question-list-screen').style.display = 'block';
     } catch (err) {
-        alert("সার্ভার কানেক্ট হচ্ছে না!");
+        console.error(err);
+        alert("সার্ভার কানেক্ট হচ্ছে না! আপনার ইন্টারনেট চেক করুন।");
     }
 }
 
-// কুইজ পপআপ ওপেন করা
+// ৩. কুইজ পপআপ (Modal) ওপেন করা
 function openQuiz(q) {
     document.getElementById('modal-q-text').innerText = q.question;
     const optBox = document.getElementById('options-box');
@@ -60,30 +62,36 @@ function openQuiz(q) {
     document.getElementById('quiz-modal').style.display = 'flex';
 }
 
-// উত্তর চেক করা
+// ৪. উত্তর যাচাই করা এবং কয়েন আপডেট
 function checkAnswer(selected, correct, btn) {
     const btns = document.querySelectorAll('.opt-btn');
-    btns.forEach(b => b.disabled = true); // বাটন লক করা
+    btns.forEach(b => b.disabled = true); // একবার ক্লিক করলে সব বাটন লক
+
+    const feedbackText = document.getElementById('feedback');
 
     if (selected === correct) {
         btn.classList.add('correct');
-        document.getElementById('feedback').innerText = "সঠিক! +১০ কয়েন";
+        feedbackText.innerText = "✅ সঠিক উত্তর! আপনি ১০ কয়েন পেয়েছেন।";
+        feedbackText.style.color = "green";
         updateCoins(10);
     } else {
         btn.classList.add('wrong');
-        btns[correct].classList.add('correct');
-        document.getElementById('feedback').innerText = "ভুল! -৫ কয়েন";
+        btns[correct].classList.add('correct'); // সঠিক উত্তরটিও লাল দেখাবে
+        feedbackText.innerText = "❌ ভুল উত্তর! ৫ কয়েন কাটা হয়েছে।";
+        feedbackText.style.color = "red";
         updateCoins(-5);
     }
 }
 
+// ৫. কয়েন ম্যানেজমেন্ট
 function updateCoins(amount) {
     coins += amount;
-    if (coins < 0) coins = 0;
+    if (coins < 0) coins = 0; // কয়েন যাতে মাইনাস না হয়
     localStorage.setItem('coins', coins);
     document.getElementById('coins').innerText = coins;
 }
 
+// ৬. স্ক্রিন নেভিগেশন ফাংশন
 function showCategories() {
     document.getElementById('category-screen').style.display = 'block';
     document.getElementById('question-list-screen').style.display = 'none';
