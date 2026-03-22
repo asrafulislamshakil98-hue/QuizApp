@@ -1,50 +1,70 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const dotenv = require('dotenv');
+const cors = require('cors');
+const session = require('express-session');
 const path = require('path');
 
 dotenv.config();
 const app = express();
 
-app.use(cors());
+// ১. Middleware (ডাটা রিসিভ করার জন্য)
 app.use(express.json());
+app.use(cors());
 
-// ১. Static folder (public) কানেক্ট করা
-app.use(express.static(path.join(__dirname, 'public')));
-
-// ২. MongoDB কানেকশন
-const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/quiz_db";
-mongoose.connect(mongoURI)
-    .then(() => console.log("✅ MongoDB Connected"))
-    .catch(err => console.error("❌ MongoDB Error:", err));
-
-// ৩. প্রশ্ন মডেল
-const Question = mongoose.model('Question', new mongoose.Schema({
-    category: String,
-    question: String,
-    options: [String],
-    correctAnswer: Number
+// ২. সেশন সেটআপ (লগইন ধরে রাখার জন্য অত্যন্ত জরুরি)
+app.use(session({
+    secret: 'my-grocery-store-secret-key', // আপনি চাইলে যেকোনো বড় নাম দিতে পারেন
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 24 * 60 * 60 * 1000 } // ২৪ ঘণ্টা লগইন থাকবে
 }));
 
-// ৪. এপিআই রুট (এটি ঠিক আছে)
-app.get('/api/questions/:category', async (req, res) => {
-    try {
-        const questions = await Question.find({ category: req.params.category });
-        res.json(questions);
-    } catch (err) {
-        res.status(500).json({ error: "সার্ভার এরর" });
+// ৩. Database Connection
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("MongoDB Connected Successfully"))
+    .catch(err => console.error("Database error:", err));
+
+// ৪. নিরাপত্তা চেক মিডলওয়্যার (লগইন না থাকলে লগইন পেজে পাঠিয়ে দিবে)
+const checkAuth = (req, res, next) => {
+    if (!req.session.userId) {
+        // যদি ইউজার লগইন না থাকে তবে তাকে লগইন পেজে পাঠাবে
+        return res.redirect('/login.html');
     }
-});
+    next();
+};
 
-// ৫. এরর ফিক্স: Express 5 এর জন্য নতুন নিয়ম (৪২ নম্বর লাইন)
-// এখানে শুধু '*' এর বদলে '/:path*' ব্যবহার করা হয়েছে
-app.get('/:path*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// ৫. ওপেন পেজ (লগইন ছাড়াও এই ২টা পেজ দেখা যাবে)
+app.get('/login.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
+app.get('/register.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'register.html')));
 
-// ৬. সার্ভার পোর্ট
+// ৬. প্রটেক্টেড পেজ (এই পেজগুলো দেখতে হলে অবশ্যই লগইন করতে হবে)
+app.get('/', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/index.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/stock.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'stock.html')));
+app.get('/pos.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'pos.html')));
+app.get('/reports.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'reports.html')));
+app.get('/daily-summary.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'daily-summary.html')));
+app.get('/registration.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'registration.html')));
+app.get('/register-product.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'register-product.html')));
+app.get('/register-customer.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'register-customer.html')));
+app.get('/register-company.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'register-company.html')));
+app.get('/company.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'company.html')));
+app.get('/credits.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'credits.html')));
+app.get('/manage-users.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'manage-users.html')));
+app.get('/graphs.html', checkAuth, (req, res) => res.sendFile(path.join(__dirname, 'public', 'graphs.html')));
+
+// ৭. স্ট্যাটিক ফাইল (CSS, JS, Images)
+app.use(express.static('public'));
+
+// ৮. এপিআই রাউটস (এগুলো অবশ্যই থাকতে হবে)
+app.use('/api/auth', require('./routes/authRoutes')); // লগইন/রেজিস্ট্রেশন এপিআই
+app.use('/api/products', require('./routes/productRoutes'));
+app.use('/api/sales', require('./routes/saleRoutes'));
+app.use('/api/companies', require('./routes/companyRoutes')); 
+app.use('/api/customers', require('./routes/customerRoutes'));
+app.use('/api/expenses', require('./routes/expenseRoutes'));
+
+// ৯. সার্ভার চালু করা
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server is running at http://localhost:${PORT}`));
